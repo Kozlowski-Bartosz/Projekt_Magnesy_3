@@ -37,13 +37,15 @@ polowa_indeksow = int(np.ceil(len(czas) / 2))
 
 # Funkcja aktualizująca wykresy
 def update():
-    global A, K, t1, t2, n, f, fi
+    global A, K, t1, t2, n, f, fi, czas_trwania, okres_probkowania, czas
+    
+    czas = np.arange(0, czas_trwania, okres_probkowania)
 
     sygnal = A * K * ((czas/t1)**n)/(1 + (czas/t1)**n) * np.exp(-czas/t2) * np.cos(2*np.pi*f*czas + fi)
 
 
 
-    linia1.set_ydata(sygnal)
+    linia1.set_data(czas, sygnal)
     ax.set_xlim([czas[0], czas[-1]])
     ax.set_ylim([-5.0, 5.0])
 
@@ -60,24 +62,28 @@ def update():
 # Konfiguracja narzędzi interaktywnych
 plt.subplots_adjust(bottom=0.5)
 axcolor = 'lightgoldenrodyellow'
-slider_A = plt.axes([0.15, 0.1, 0.7, 0.03], facecolor=axcolor)
-slider_K = plt.axes([0.15, 0.15, 0.7, 0.03], facecolor=axcolor)
+slider_czas_trwania = plt.axes([0.15, 0.4, 0.7, 0.03], facecolor=axcolor)
+slider_okres_probkowania = plt.axes([0.15, 0.35, 0.7, 0.03], facecolor=axcolor)
+slider_A = plt.axes([0.15, 0.3, 0.7, 0.03], facecolor=axcolor)
+slider_K = plt.axes([0.15, 0.25, 0.7, 0.03], facecolor=axcolor)
 slider_t1 = plt.axes([0.15, 0.2, 0.7, 0.03], facecolor=axcolor)
-slider_t2 = plt.axes([0.15, 0.25, 0.7, 0.03], facecolor=axcolor)
-slider_n = plt.axes([0.15, 0.3, 0.7, 0.03], facecolor=axcolor)
-slider_f = plt.axes([0.15, 0.35, 0.7, 0.03], facecolor=axcolor)
-slider_fi = plt.axes([0.15, 0.4, 0.7, 0.03], facecolor=axcolor)
+slider_t2 = plt.axes([0.15, 0.15, 0.7, 0.03], facecolor=axcolor)
+slider_n = plt.axes([0.15, 0.1, 0.7, 0.03], facecolor=axcolor)
+slider_f = plt.axes([0.15, 0.05, 0.7, 0.03], facecolor=axcolor)
+slider_fi = plt.axes([0.15, 0.0, 0.7, 0.03], facecolor=axcolor)
 
-slider_A_obj = plt.Slider(slider_A, 'A', 0.1, 10.0, valinit=A, valstep=0.1)
-slider_K_obj = plt.Slider(slider_K, 'K', 0.1, 10.0, valinit=K, valstep=0.1)
-slider_t1_obj = plt.Slider(slider_t1, 't1', 0.1, czas_trwania, valinit=t1, valstep=0.1)
-slider_t2_obj = plt.Slider(slider_t2, 't2', 0.1, czas_trwania, valinit=t2, valstep=0.1)
-slider_n_obj = plt.Slider(slider_n, 'n', 0.1, 10.0, valinit=n, valstep=0.1)
-slider_f_obj = plt.Slider(slider_f, 'f', 0.1, 10.0, valinit=f, valstep=0.1)
-slider_fi_obj = plt.Slider(slider_fi, 'fi', 0.0, 2*np.pi, valinit=fi, valstep=0.1)
+slider_czas_trwania_obj = plt.Slider(slider_czas_trwania, 'Czas trwania', 1, 30, valinit=czas_trwania, valstep=1)
+slider_okres_probkowania_obj = plt.Slider(slider_okres_probkowania, 'Okres próbkowania', 0.01, 1.0, valinit=okres_probkowania, valstep=0.01)
+slider_A_obj = plt.Slider(slider_A, 'A', 0.01, 10.0, valinit=A, valstep=0.01)
+slider_K_obj = plt.Slider(slider_K, 'K', 0.01, 10.0, valinit=K, valstep=0.01)
+slider_t1_obj = plt.Slider(slider_t1, 't1', 0.001, czas_trwania, valinit=t1, valstep=0.001)
+slider_t2_obj = plt.Slider(slider_t2, 't2', 0.001, czas_trwania, valinit=t2, valstep=0.001)
+slider_n_obj = plt.Slider(slider_n, 'n', 0.01, 10.0, valinit=n, valstep=0.01)
+slider_f_obj = plt.Slider(slider_f, 'f', 0.001, 10.0, valinit=f, valstep=0.001)
+slider_fi_obj = plt.Slider(slider_fi, 'fi', 0.0, 2*np.pi, valinit=fi, valstep=0.01)
 
 def update_params(val):
-    global A, K, t1, t2, n, f, fi
+    global A, K, t1, t2, n, f, fi, czas_trwania, okres_probkowania
 
     A = slider_A_obj.val
     K = slider_K_obj.val
@@ -86,6 +92,8 @@ def update_params(val):
     n = slider_n_obj.val
     f = slider_f_obj.val
     fi = slider_fi_obj.val
+    czas_trwania = slider_czas_trwania_obj.val
+    okres_probkowania = slider_okres_probkowania_obj.val
 
     update()
 
@@ -96,6 +104,8 @@ slider_t2_obj.on_changed(update_params)
 slider_n_obj.on_changed(update_params)
 slider_f_obj.on_changed(update_params)
 slider_fi_obj.on_changed(update_params)
+slider_czas_trwania_obj.on_changed(update_params)
+slider_okres_probkowania_obj.on_changed(update_params)
 
 # Wywołanie funkcji update dla inicjalizacji wykresów
 update()

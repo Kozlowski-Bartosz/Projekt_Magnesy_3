@@ -38,16 +38,18 @@ polowa_indeksow = int(np.ceil(len(czas) / 2))
 
 # Funkcja aktualizująca wykresy
 def update():
-    global A1, f1, fi1, A2, f2, fi2
+    global A1, f1, fi1, A2, f2, fi2, czas_trwania, okres_probkowania, czas
+    
+    czas = np.arange(0, czas_trwania, okres_probkowania)
 
     # Sygnały sinusoidalne
     sygnal1 = A1 * np.sin(2 * np.pi * f1 * czas + fi1)
     sygnal2 = A2 * np.sin(2 * np.pi * f2 * czas + fi2)
     sygnal = sygnal1 + sygnal2
-
-    linia1.set_ydata(sygnal1)
-    linia2.set_ydata(sygnal2)
-    linia3.set_ydata(sygnal)
+    
+    linia1.set_data(czas, sygnal1)
+    linia2.set_data(czas, sygnal2)
+    linia3.set_data(czas, sygnal)
     ax.set_xlim([czas[0], czas[-1]])
     ax.set_ylim([-5.0, 5.0])
 
@@ -64,6 +66,8 @@ def update():
 # Konfiguracja narzędzi interaktywnych
 plt.subplots_adjust(bottom=0.6)
 axcolor = 'lightgoldenrodyellow'
+slider_czas_trwania = plt.axes([0.15, 0.45, 0.4, 0.03], facecolor=axcolor)
+slider_okres_probkowania = plt.axes([0.15, 0.4, 0.4, 0.03], facecolor=axcolor)
 slider_A1 = plt.axes([0.15, 0.35, 0.7, 0.03], facecolor=axcolor)
 slider_f1 = plt.axes([0.15, 0.3, 0.7, 0.03], facecolor=axcolor)
 slider_fi1 = plt.axes([0.15, 0.25, 0.7, 0.03], facecolor=axcolor)
@@ -71,6 +75,8 @@ slider_A2 = plt.axes([0.15, 0.2, 0.7, 0.03], facecolor=axcolor)
 slider_f2 = plt.axes([0.15, 0.15, 0.7, 0.03], facecolor=axcolor)
 slider_fi2 = plt.axes([0.15, 0.1, 0.7, 0.03], facecolor=axcolor)
 
+slider_czas_trwania_obj = plt.Slider(slider_czas_trwania, 'Czas trwania', 1, 30, valinit=czas_trwania, valstep=1)
+slider_okres_probkowania_obj = plt.Slider(slider_okres_probkowania, 'Okres próbkowania', 0.01, 1.0, valinit=okres_probkowania, valstep=0.01)
 slider_A1_obj = plt.Slider(slider_A1, 'A1', 0.01, 3.0, valinit=A1, valstep=0.01)
 slider_f1_obj = plt.Slider(slider_f1, 'f1', 0.001, 10.0, valinit=f1, valstep=0.001)
 slider_fi1_obj = plt.Slider(slider_fi1, 'fi1', 0.0, 2*np.pi, valinit=fi1, valstep=0.01)
@@ -79,7 +85,7 @@ slider_f2_obj = plt.Slider(slider_f2, 'f2', 0.001, 10.0, valinit=f2, valstep=0.0
 slider_fi2_obj = plt.Slider(slider_fi2, 'fi2', 0.0, 2*np.pi, valinit=fi2, valstep=0.01)
 
 def update_params(val):
-    global A1, f1, fi1, A2, f2, fi2
+    global A1, f1, fi1, A2, f2, fi2, czas_trwania, okres_probkowania
 
     A1 = slider_A1_obj.val
     f1 = slider_f1_obj.val
@@ -87,6 +93,8 @@ def update_params(val):
     A2 = slider_A2_obj.val
     f2 = slider_f2_obj.val
     fi2 = slider_fi2_obj.val
+    czas_trwania = slider_czas_trwania_obj.val
+    okres_probkowania = slider_okres_probkowania_obj.val
 
     update()
 
@@ -96,8 +104,10 @@ slider_fi1_obj.on_changed(update_params)
 slider_A2_obj.on_changed(update_params)
 slider_f2_obj.on_changed(update_params)
 slider_fi2_obj.on_changed(update_params)
+slider_czas_trwania_obj.on_changed(update_params)
+slider_okres_probkowania_obj.on_changed(update_params)
 
-rax = plt.axes([0.15, 0.4, 0.3, 0.1])
+rax = plt.axes([0.65, 0.4, 0.3, 0.1])
 checkboxes = CheckButtons(rax, ('Sygnał 1', 'Sygnał 2', 'Sygnał Złożony'), (True, True, True))
 
 def toggle_visibility(label):
