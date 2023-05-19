@@ -1,63 +1,119 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.widgets import CheckButtons
 
 # Parametry sygnałów
-amplituda = 1              # Amplituda sygnałów
-czestotliwosc1 = 1         # Częstotliwość pierwszego sygnału
-czestotliwosc2 = 2         # Częstotliwość drugiego sygnału
-czas_trwania = 4           # Czas trwania sygnału w sekundach
-okres_probkowania = 0.01   # Okres próbkowania sygnału
+A1 = 1
+f1 = 1
+fi1 = 0
+A2 = 0.5
+f2 = 2
+fi2 = np.pi/4
+
+# Inicjalizacja wykresów
+fig, ax = plt.subplots()
+fig2, axs2 = plt.subplots()
 
 # Tworzenie wektora czasu
+czas_trwania = 20
+okres_probkowania = 0.01
 czas = np.arange(0, czas_trwania, okres_probkowania)
 
-# Sygnał sinusoidalny
-sygnal_sinusoidalny = amplituda * np.sin(2 * np.pi * czestotliwosc1 * czas)
+# Inicjalizacja linii wykresów
+linia1, = ax.plot(czas, np.zeros_like(czas), label='Sygnał 1')
+linia2, = ax.plot(czas, np.zeros_like(czas), label='Sygnał 2')
+linia3, = ax.plot(czas, np.zeros_like(czas), label='Sygnał Złożony')
+linia4, = axs2.plot([], [])
 
-# Sygnał złożony z dwóch sinusoid
-sygnal_zlozony = amplituda * (np.sin(2 * np.pi * czestotliwosc1 * czas) + np.sin(2 * np.pi * czestotliwosc2 * czas))
+# Konfiguracja wykresów
+ax.set_title('Sygnał')
+ax.set_xlabel('Czas [s]')
+ax.set_ylabel('Amplituda')
 
-# Wyświetlanie sygnałów w dziedzinie czasu
-plt.figure()
-plt.subplot(2, 1, 1)
-plt.plot(czas, sygnal_sinusoidalny)
-plt.title('Sygnał sinusoidalny')
-plt.xlabel('Czas [s]')
-plt.ylabel('Amplituda')
+axs2.set_title('Transformata Fouriera')
+axs2.set_xlabel('Częstotliwość [Hz]')
+axs2.set_ylabel('Amplituda')
 
-plt.subplot(2, 1, 2)
-plt.plot(czas, sygnal_zlozony)
-plt.title('Sygnał złożony')
-plt.xlabel('Czas [s]')
-plt.ylabel('Amplituda')
+polowa_indeksow = int(np.ceil(len(czas) / 2))
 
-# Transformata Fouriera
-czestotliwosc_probkowania = 1 / okres_probkowania
-sygnal_sinusoidalny_fft = np.fft.fft(sygnal_sinusoidalny)
-sygnal_zlozony_fft = np.fft.fft(sygnal_zlozony)
+# Funkcja aktualizująca wykresy
+def update():
+    global A1, f1, fi1, A2, f2, fi2
 
-# Wartości częstotliwości dla osi częstotliwościowej
-czestotliwosc = np.linspace(0, czestotliwosc_probkowania, len(czas))
+    # Sygnały sinusoidalne
+    sygnal1 = A1 * np.sin(2 * np.pi * f1 * czas + fi1)
+    sygnal2 = A2 * np.sin(2 * np.pi * f2 * czas + fi2)
+    sygnal = sygnal1 + sygnal2
 
-# Ograniczenie wyników do prawostronnej połowy
-polowa_indeksow = len(czestotliwosc) // 2
-czestotliwosc = czestotliwosc[:polowa_indeksow]
-sygnal_sinusoidalny_fft = np.abs(sygnal_sinusoidalny_fft[:polowa_indeksow])
-sygnal_zlozony_fft = np.abs(sygnal_zlozony_fft[:polowa_indeksow])
+    linia1.set_ydata(sygnal1)
+    linia2.set_ydata(sygnal2)
+    linia3.set_ydata(sygnal)
+    ax.set_xlim([czas[0], czas[-1]])
+    ax.set_ylim([-5.0, 5.0])
 
-# Wyświetlanie sygnałów w dziedzinie częstotliwości
-plt.figure()
-plt.subplot(2, 1, 1)
-plt.plot(czestotliwosc, sygnal_sinusoidalny_fft)
-plt.title('Transformata Fouriera sygnału sinusoidalnego')
-plt.xlabel('Częstotliwość [Hz]')
-plt.ylabel('Amplituda')
+    widmo = np.abs(np.fft.fft(sygnal)[:polowa_indeksow])
+    maksimum_widmo = np.max(widmo)
 
-plt.subplot(2, 1, 2)
-plt.plot(czestotliwosc, sygnal_zlozony_fft)
-plt.title('Transformata Fouriera sygnału złożonego')
-plt.xlabel('Częstotliwość [Hz]')
-plt.ylabel('Amplituda')
+    linia4.set_data(np.fft.fftfreq(len(czas), okres_probkowania)[:polowa_indeksow], widmo)
+    axs2.set_xlim(0, 10)
+    axs2.set_ylim([np.min(widmo), maksimum_widmo if maksimum_widmo > 500 else 500])
 
-plt.tight_layout()
+    fig.canvas.draw_idle()
+    fig2.canvas.draw_idle()
+
+# Konfiguracja narzędzi interaktywnych
+plt.subplots_adjust(bottom=0.6)
+axcolor = 'lightgoldenrodyellow'
+slider_A1 = plt.axes([0.15, 0.35, 0.7, 0.03], facecolor=axcolor)
+slider_f1 = plt.axes([0.15, 0.3, 0.7, 0.03], facecolor=axcolor)
+slider_fi1 = plt.axes([0.15, 0.25, 0.7, 0.03], facecolor=axcolor)
+slider_A2 = plt.axes([0.15, 0.2, 0.7, 0.03], facecolor=axcolor)
+slider_f2 = plt.axes([0.15, 0.15, 0.7, 0.03], facecolor=axcolor)
+slider_fi2 = plt.axes([0.15, 0.1, 0.7, 0.03], facecolor=axcolor)
+
+slider_A1_obj = plt.Slider(slider_A1, 'A1', 0.01, 3.0, valinit=A1, valstep=0.01)
+slider_f1_obj = plt.Slider(slider_f1, 'f1', 0.001, 10.0, valinit=f1, valstep=0.001)
+slider_fi1_obj = plt.Slider(slider_fi1, 'fi1', 0.0, 2*np.pi, valinit=fi1, valstep=0.01)
+slider_A2_obj = plt.Slider(slider_A2, 'A2', 0.01, 3.0, valinit=A2, valstep=0.01)
+slider_f2_obj = plt.Slider(slider_f2, 'f2', 0.001, 10.0, valinit=f2, valstep=0.001)
+slider_fi2_obj = plt.Slider(slider_fi2, 'fi2', 0.0, 2*np.pi, valinit=fi2, valstep=0.01)
+
+def update_params(val):
+    global A1, f1, fi1, A2, f2, fi2
+
+    A1 = slider_A1_obj.val
+    f1 = slider_f1_obj.val
+    fi1 = slider_fi1_obj.val
+    A2 = slider_A2_obj.val
+    f2 = slider_f2_obj.val
+    fi2 = slider_fi2_obj.val
+
+    update()
+
+slider_A1_obj.on_changed(update_params)
+slider_f1_obj.on_changed(update_params)
+slider_fi1_obj.on_changed(update_params)
+slider_A2_obj.on_changed(update_params)
+slider_f2_obj.on_changed(update_params)
+slider_fi2_obj.on_changed(update_params)
+
+rax = plt.axes([0.15, 0.4, 0.3, 0.1])
+checkboxes = CheckButtons(rax, ('Sygnał 1', 'Sygnał 2', 'Sygnał Złożony'), (True, True, True))
+
+def toggle_visibility(label):
+    if label == 'Sygnał 1':
+        linia1.set_visible(not linia1.get_visible())
+    elif label == 'Sygnał 2':
+        linia2.set_visible(not linia2.get_visible())
+    elif label == 'Sygnał Złożony':
+        linia3.set_visible(not linia3.get_visible())
+
+    fig.canvas.draw_idle()
+
+checkboxes.on_clicked(toggle_visibility)
+
+# Wywołanie funkcji update dla inicjalizacji wykresów
+update()
+
+# Wyświetlanie okien graficznych
 plt.show()
