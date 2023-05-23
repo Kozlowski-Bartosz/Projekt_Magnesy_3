@@ -15,7 +15,7 @@ fig, ax = plt.subplots()
 fig2, axs2 = plt.subplots()
 
 # Tworzenie wektora czasu
-signal_time = 20
+signal_time = 30
 sampling_frequency = 0.01
 time = np.arange(0, signal_time, sampling_frequency)
 window = np.ones(len(time))
@@ -44,6 +44,7 @@ def update():
     
     
     time = np.arange(0, signal_time, sampling_frequency)
+    
     update_window(buttons_window_obj.value_selected)
 
     # Sygnały sinusoidalne
@@ -57,12 +58,12 @@ def update():
     ax.set_xlim([time[0], time[-1]])
     ax.set_ylim([-5.0, 5.0])
 
-    freq_spectrum = np.abs(np.fft.fft(signal_combined)[:index_half])
-    spectrum_max = np.max(freq_spectrum)
+    fourier = np.abs(np.fft.fft(signal_combined)[:index_half])
+    spectrum_max = np.max(fourier)
 
-    line_4.set_data(np.fft.fftfreq(len(time), sampling_frequency)[:index_half], freq_spectrum)
+    line_4.set_data(np.fft.fftfreq(len(time), sampling_frequency)[:index_half], fourier)
     axs2.set_xlim(0, 10)
-    axs2.set_ylim([np.min(freq_spectrum), spectrum_max if spectrum_max > 500 else 500])
+    axs2.set_ylim([np.min(fourier), spectrum_max if spectrum_max > 500 else 500])
 
     fig.canvas.draw_idle()
     fig2.canvas.draw_idle()
