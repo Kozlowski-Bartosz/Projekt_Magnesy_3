@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.widgets import CheckButtons
+from matplotlib.widgets import CheckButtons, RadioButtons
 
 # Parametry sygnałów
 A1 = 1
@@ -18,6 +18,7 @@ fig2, axs2 = plt.subplots()
 czas_trwania = 20
 okres_probkowania = 0.01
 czas = np.arange(0, czas_trwania, okres_probkowania)
+window = np.ones(len(czas))
 
 # Inicjalizacja linii wykresów
 linia1, = ax.plot(czas, np.zeros_like(czas), label='Sygnał 1')
@@ -38,13 +39,14 @@ polowa_indeksow = int(np.ceil(len(czas) / 2))
 
 # Funkcja aktualizująca wykresy
 def update():
-    global A1, f1, fi1, A2, f2, fi2, czas_trwania, okres_probkowania, czas
+    global A1, f1, fi1, A2, f2, fi2, czas_trwania, okres_probkowania, czas, window
     
     czas = np.arange(0, czas_trwania, okres_probkowania)
+    update_window(buttons_window_obj.value_selected)
 
     # Sygnały sinusoidalne
-    sygnal1 = A1 * np.sin(2 * np.pi * f1 * czas + fi1)
-    sygnal2 = A2 * np.sin(2 * np.pi * f2 * czas + fi2)
+    sygnal1 = A1 * np.sin(2 * np.pi * f1 * czas + fi1) * window
+    sygnal2 = A2 * np.sin(2 * np.pi * f2 * czas + fi2) * window
     sygnal = sygnal1 + sygnal2
     
     linia1.set_data(czas, sygnal1)
@@ -64,8 +66,10 @@ def update():
     fig2.canvas.draw_idle()
 
 # Konfiguracja narzędzi interaktywnych
-plt.subplots_adjust(bottom=0.6)
+plt.subplots_adjust(bottom=0.65)
 axcolor = 'lightgoldenrodyellow'
+buttons_window = plt.axes([0.65, 0.5, 0.3, 0.08])
+buttons_signal = plt.axes([0.65, 0.4, 0.3, 0.08])
 slider_czas_trwania = plt.axes([0.15, 0.45, 0.4, 0.03], facecolor=axcolor)
 slider_okres_probkowania = plt.axes([0.15, 0.4, 0.4, 0.03], facecolor=axcolor)
 slider_A1 = plt.axes([0.15, 0.35, 0.7, 0.03], facecolor=axcolor)
@@ -75,6 +79,8 @@ slider_A2 = plt.axes([0.15, 0.2, 0.7, 0.03], facecolor=axcolor)
 slider_f2 = plt.axes([0.15, 0.15, 0.7, 0.03], facecolor=axcolor)
 slider_fi2 = plt.axes([0.15, 0.1, 0.7, 0.03], facecolor=axcolor)
 
+buttons_window_obj = RadioButtons(buttons_window, ('Brak', 'Hamminga', 'Barletta', 'Blackmana'), active=0)
+buttons_signal_obj = CheckButtons(buttons_signal, ('Sygnał 1', 'Sygnał 2', 'Sygnał Złożony'), (True, True, True))
 slider_czas_trwania_obj = plt.Slider(slider_czas_trwania, 'Czas trwania', 1, 30, valinit=czas_trwania, valstep=1)
 slider_okres_probkowania_obj = plt.Slider(slider_okres_probkowania, 'Okres próbkowania', 0.01, 1.0, valinit=okres_probkowania, valstep=0.01)
 slider_A1_obj = plt.Slider(slider_A1, 'A1', 0.01, 3.0, valinit=A1, valstep=0.01)
@@ -97,7 +103,22 @@ def update_params(val):
     okres_probkowania = slider_okres_probkowania_obj.val
 
     update()
+    
+def update_window(label = ""):
+    global czas, window
 
+    if label == 'Hamminga':
+        window = np.hamming(len(czas))
+    elif label == 'Barletta':
+        window = np.bartlett(len(czas))
+    elif label == 'Blackmana':
+        window = np.blackman(len(czas))
+    else:
+        window = np.ones(len(czas))
+        
+    return window
+
+buttons_window_obj.on_clicked(update_params)
 slider_A1_obj.on_changed(update_params)
 slider_f1_obj.on_changed(update_params)
 slider_fi1_obj.on_changed(update_params)
@@ -107,8 +128,6 @@ slider_fi2_obj.on_changed(update_params)
 slider_czas_trwania_obj.on_changed(update_params)
 slider_okres_probkowania_obj.on_changed(update_params)
 
-rax = plt.axes([0.65, 0.4, 0.3, 0.1])
-checkboxes = CheckButtons(rax, ('Sygnał 1', 'Sygnał 2', 'Sygnał Złożony'), (True, True, True))
 
 def toggle_visibility(label):
     if label == 'Sygnał 1':
@@ -120,7 +139,7 @@ def toggle_visibility(label):
 
     fig.canvas.draw_idle()
 
-checkboxes.on_clicked(toggle_visibility)
+buttons_signal_obj.on_clicked(toggle_visibility)
 
 # Wywołanie funkcji update dla inicjalizacji wykresów
 update()
